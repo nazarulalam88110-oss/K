@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KinexGo - 10-Min Superfast Grocery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- VIEW 0: UNIFIED SECURE AUTH GATE -->
+  <div id="authGateView" class="app-view active" style="background:#059669; min-height:100vh; padding:30px 20px; color:white;">
+    <div style="text-align:center; margin-top:40px; margin-bottom:24px;">
+      <div style="font-size:32px; font-weight:900;">Kinex<span style="color:#f59e0b;">Go</span></div>
+      <p style="font-size:12px; opacity:0.9; margin-top:4px;">10-Minute Instant Grocery Delivery</p>
+    </div>
+
+    <div style="background:white; border-radius:18px; padding:20px; color:#1e293b; box-shadow:0 10px 25px rgba(0,0,0,0.15);">
+      <h2 id="gateTitle" style="font-size:16px; font-weight:800; margin-bottom:14px;">Create New Account</h2>
+      <div class="form-group" id="gateNameGroup">
+        <label>Full Name</label>
+        <input type="text" id="gateName" class="form-control" placeholder="Enter your full name">
+      </div>
+      <div class="form-group">
+        <label>Mobile Number / User ID</label>
+        <input type="text" id="gatePhone" class="form-control" placeholder="Enter Mobile Number or ID">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="gatePass" class="form-control" placeholder="Enter password">
+      </div>
+      <button class="checkout-btn" id="gateSubmitBtn" onclick="handleUnifiedAuth()">Register & Start Shopping</button>
+      <div style="text-align:center; margin-top:14px; font-size:11px; color:#64748b;">
+        <span id="gateToggleText">Already have an account?</span>
+        <strong id="gateToggleLink" style="color:#059669; cursor:pointer;" onclick="toggleGateAuthMode()">Login Here</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 1: CUSTOMER STORE -->
+  <div id="customerStoreView" class="app-view">
+    <header>
+      <div class="header-top">
+        <div class="logo">Kinex<span>Go</span></div>
+        <div class="header-actions">
+          <button class="icon-btn" onclick="switchView('userProfileView')">👤</button>
+          <button class="icon-btn" onclick="openCartDrawer()">
+            🛒<span class="badge" id="cartCount">0</span>
+          </button>
+        </div>
+      </div>
+      <div class="search-box">
+        <span class="icon-left">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search milk, fruits, atta, snacks..." oninput="handleSearch()">
+        <span class="icon-right">🎙️</span>
+      </div>
+    </header>
+
+    <div class="story-categories" id="categoriesBar"></div>
+
+    <div class="section-header">
+      <div class="section-title">DAILY ESSENTIALS</div>
+      <span class="view-all" onclick="filterByCat('All')">View All &gt;</span>
+    </div>
+
+    <div class="banner-container">
+      <div class="hero-banner" id="bannerHero">
+        <div class="banner-text">
+          <h2 id="bannerTitleDisplay">10-MIN<br>GROCERY</h2>
+          <p id="bannerSubDisplay">Fresh Farm Veggies & Dairy</p>
+          <button class="banner-btn" onclick="filterByCat('Veggies')">ORDER NOW</button>
+        </div>
+        <img class="banner-img" id="bannerImgDisplay" src="https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=300&auto=format&fit=crop&q=60" alt="Groceries">
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title" id="gridTitle">ALL GROCERY ITEMS</div>
+      <span class="view-all">View All &gt;</span>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
+  </div>
+  <!-- VIEW 2: PROFILE, SETTINGS & ORDER HISTORY -->
+  <div id="userProfileView" class="app-view">
+    <header style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="logo">👤 My <span>Account</span></div>
+      <button class="btn-secondary" onclick="switchView('customerStoreView')">Back to Store</button>
+    </header>
+
+    <div class="panel-container">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:14px;">
+        <button class="admin-tab-btn active" id="btnUserTabSettings" onclick="switchUserSubTab('userSettingsTab', this)">⚙️ Settings & Address</button>
+        <button class="admin-tab-btn" id="btnUserTabOrders" onclick="switchUserSubTab('userOrdersTab', this)">📦 Order History</button>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="userSettingsTab">
+        <div class="panel-card">
+          <div class="panel-title">✏️ Edit Profile Credentials</div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="uNameEdit" class="form-control" placeholder="Enter Full Name">
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="text" id="uPassEdit" class="form-control" placeholder="Enter New Password">
+          </div>
+          <button class="btn-primary" onclick="updateUserAccount()">Save Profile Details</button>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title">📍 Saved Delivery Address</div>
+          <div class="form-group">
+            <label>Delivery Address</label>
+            <input type="text" id="userSavedAddress" class="form-control" placeholder="Flat/House No, Landmark">
+          </div>
+          <div class="form-group">
+            <label>Pincode</label>
+            <input type="number" id="userSavedPincode" class="form-control" placeholder="Enter 6-digit Pincode">
+          </div>
+          <button class="btn-primary" onclick="saveUserAddress()">Save Address</button>
+        </div>
+
+        <div class="panel-card">
+          <button class="btn-danger" style="width:100%;" onclick="logoutApp()">🚪 Log Out</button>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div id="userOrdersTab" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">🛍️ Past Orders & Live Status</div>
+          <div id="userOrdersList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: ADMIN DASHBOARD (Manage Banner, Users, Orders, Products, Fleet) -->
+  <div id="adminPanelView" class="app-view">
+    <header style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="logo">👑 Kinex<span>Admin</span></div>
+      <button class="btn-danger" onclick="logoutApp()">Log Out</button>
+    </header>
+
+    <div class="panel-container">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Total Orders</div>
+          <div class="kpi-val" id="kpiTotalOrders">0</div>
+          <div class="kpi-growth">+12.5% ↑</div>
+          <div class="kpi-icon green">📦</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Total Sales</div>
+          <div class="kpi-val" id="kpiTotalSales">₹0</div>
+          <div class="kpi-growth">+8.4% ↑</div>
+          <div class="kpi-icon blue">💰</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Cancelled</div>
+          <div class="kpi-val" id="kpiCancelledOrders" style="color:#ef4444;">0</div>
+          <div class="kpi-growth" style="color:#ef4444;">Cancelled</div>
+          <div class="kpi-icon orange">❌</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Registered Users</div>
+          <div class="kpi-val" id="kpiTotalUsers">0</div>
+          <div class="kpi-growth">Active Base</div>
+          <div class="kpi-icon purple">👥</div>
+        </div>
+      </div>
+
+      <div class="admin-tab-bar">
+        <button class="admin-tab-btn active" onclick="switchAdminSubTab('tabOrders', this)">📦 All Orders</button>
+        <button class="admin-tab-btn" onclick="switchAdminSubTab('tabBanner', this)">🎨 Edit Banner</button>
+        <button class="admin-tab-btn" onclick="switchAdminSubTab('tabUsers', this)">👥 Manage Users</button>
+        <button class="admin-tab-btn" onclick="switchAdminSubTab('tabRiders', this)">🛵 Delivery Fleet</button>
+        <button class="admin-tab-btn" onclick="switchAdminSubTab('tabAddProd', this)">+ Add Product</button>
+        <button class="admin-tab-btn" onclick="switchAdminSubTab('tabAllProd', this)">📋 All Products</button>
+      </div>
+
+      <!-- Tab: Orders -->
+      <div id="tabOrders" class="admin-sub-view">
+        <div class="panel-card">
+          <div class="panel-title">📦 Customer Orders Log</div>
+          <div id="adminOrdersDetailedList"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Edit Banner (NEW) -->
+      <div id="tabBanner" class="admin-sub-view" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">🎨 Customize Store Hero Banner</div>
+          <div class="form-group">
+            <label>Banner Main Title (Use &lt;br&gt; for line break)</label>
+            <input type="text" id="admBannerTitle" class="form-control" placeholder="10-MIN&lt;br&gt;GROCERY">
+          </div>
+          <div class="form-group">
+            <label>Banner Subtitle</label>
+            <input type="text" id="admBannerSub" class="form-control" placeholder="Fresh Farm Veggies & Dairy">
+          </div>
+          <div class="form-group">
+            <label>Banner Image URL</label>
+            <input type="text" id="admBannerImg" class="form-control" placeholder="https://images.unsplash.com/...">
+          </div>
+          <button class="btn-primary" onclick="adminSaveBanner()">Update Banner on Store</button>
+        </div>
+      </div>
+
+      <!-- Tab: Manage Users -->
+      <div id="tabUsers" class="admin-sub-view" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">👥 All Registered Members</div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone / ID</th>
+                  <th>Password</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Fleet -->
+      <div id="tabRiders" class="admin-sub-view" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">🛵 Register Delivery Partner</div>
+          <div class="form-group">
+            <label>Partner Full Name *</label>
+            <input type="text" id="admRiderName" class="form-control" placeholder="e.g. Nazarul Alam">
+          </div>
+          <div class="form-group">
+            <label>Login User ID *</label>
+            <input type="text" id="admRiderUser" class="form-control" placeholder="e.g. nazarul10">
+          </div>
+          <div class="form-group">
+            <label>Password *</label>
+            <input type="password" id="admRiderPass" class="form-control" placeholder="Set password">
+          </div>
+          <button class="btn-primary" onclick="adminCreateRider()">+ Add Delivery Partner</button>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-title">👥 Active Delivery Partners</div>
+          <div id="adminRidersDetailedList"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Add Product -->
+      <div id="tabAddProd" class="admin-sub-view" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">📦 Add New Store Product</div>
+          <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" id="admPName" class="form-control" placeholder="Product Name">
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="admPCat" class="form-control">
+              <option value="Atta">Atta, Rice & Oils</option>
+              <option value="Veggies">Vegetables & Fruits</option>
+              <option value="Dairy">Dairy & Milk</option>
+              <option value="Snacks">Snacks & Beverages</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity / Unit</label>
+            <input type="text" id="admPDesc" class="form-control" placeholder="e.g. 1 L, 1 kg, 500 g">
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div class="form-group" style="flex:1;">
+              <label>Selling Price (₹) *</label>
+              <input type="number" id="admPPrice" class="form-control" placeholder="135">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>Original MRP (₹)</label>
+              <input type="number" id="admPMrp" class="form-control" placeholder="150">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input type="number" id="admPStock" class="form-control" placeholder="50">
+          </div>
+          <div class="form-group">
+            <label>Product Image URL</label>
+            <input type="text" id="admPImg" class="form-control" placeholder="https://images.unsplash.com/...">
+          </div>
+          <button class="btn-primary" onclick="adminAddProduct()">Save Product to Store</button>
+        </div>
+      </div>
+
+      <!-- Tab: All Products -->
+      <div id="tabAllProd" class="admin-sub-view" style="display:none;">
+        <div class="panel-card">
+          <div class="panel-title">📋 Store Inventory Table</div>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: DELIVERY BOY PANEL -->
+  <div id="deliveryPanelView" class="app-view">
+    <header style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="logo">🛵 Delivery <span>Portal</span></div>
+      <button class="btn-danger" onclick="logoutApp()">Log Out</button>
+    </header>
+
+    <div class="panel-container">
+      <div style="background:#059669; color:white; padding:12px; border-radius:12px; margin-bottom:12px;">
+        <div style="font-size:11px; opacity:0.9;">Active Delivery Partner:</div>
+        <strong id="riderNameBadge">Partner</strong>
+      </div>
+      <div class="panel-title">⚡ Assigned Deliveries</div>
+      <div id="deliveryOrdersList"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav" id="customerBottomNav" style="display:none;">
+    <button class="nav-item active" onclick="setActiveTab(this); switchView('customerStoreView');">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="setActiveTab(this); switchView('customerStoreView'); document.getElementById('searchInput').focus();">
+      <span class="nav-icon">🔍</span>
+      <span>Search</span>
+    </button>
+    <button class="nav-item" onclick="openCartDrawer()">
+      <span class="nav-icon">🛒</span>
+      <span>Cart</span>
+    </button>
+    <button class="nav-item" onclick="setActiveTab(this); switchView('userProfileView');">
+      <span class="nav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="buyModal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+        <h3 style="font-size:15px;">⚡ Instant 10-Min Order</h3>
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="closeBuyModal()">✕</button>
+      </div>
+      <div id="buyProductDetails" style="margin:14px 0; display:flex; gap:12px; align-items:center;"></div>
+      
+      <div class="form-group">
+        <label>Customer Name:</label>
+        <input type="text" id="buyCustName" class="form-control" placeholder="Full Name">
+      </div>
+      
+      <div class="form-group">
+        <label>Mobile Number:</label>
+        <input type="text" id="buyCustPhone" class="form-control" placeholder="10-digit number">
+      </div>
+      
+      <div class="form-group">
+        <label>Delivery Address:</label>
+        <input type="text" id="buyCustAddress" class="form-control" placeholder="Flat/House No, Building, Landmark">
+      </div>
+
+      <div class="form-group">
+        <label>Pincode:</label>
+        <input type="number" id="buyCustPincode" class="form-control" placeholder="Enter your 6-digit pincode">
+      </div>
+
+      <div style="background:#f8fafc; padding:10px; border-radius:8px; font-size:12px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span>Payment Mode:</span>
+          <strong>Cash on Delivery (COD)</strong>
+        </div>
+      </div>
+      <button class="checkout-btn" onclick="confirmDirectOrder()">Place Instant Order</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="cartDrawer">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px;">
+        <h3 style="font-size:15px;">Grocery Basket</h3>
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="closeCartDrawer()">✕</button>
+      </div>
+      <div id="cartItemList" style="max-height:40vh; overflow-y:auto; margin:10px 0;"></div>
+      <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; margin-top:8px;">
+        <span>Total Payable:</span>
+        <span id="cartTotalVal">₹0.00</span>
+      </div>
+      <button class="checkout-btn" onclick="cartCheckout()">Checkout All Items</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
